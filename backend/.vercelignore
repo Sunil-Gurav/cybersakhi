@@ -1,0 +1,19 @@
+# Vercel ignore file
+node_modules
+.env.local
+.env.development
+.env.test
+*.log
+.DS_Store
+Thumbs.db
+
+# Keep only necessary files for deployment
+!api/
+!config/
+!controllers/
+!middleware/
+!models/
+!routes/
+!utils/
+!package.json
+!vercel.json
