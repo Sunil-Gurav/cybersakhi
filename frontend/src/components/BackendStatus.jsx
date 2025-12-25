@@ -27,9 +27,10 @@ const BackendStatus = () => {
   };
 
   useEffect(() => {
-    if (isDev) {
-      checkBackend();
-    }
+    // Don't auto-check to avoid errors - let user manually check
+    // if (isDev) {
+    //   checkBackend();
+    // }
   }, []);
 
   if (!isVisible) return null;

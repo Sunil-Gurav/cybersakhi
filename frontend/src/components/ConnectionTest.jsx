@@ -12,13 +12,8 @@ const ConnectionTest = () => {
     const url = import.meta.env.PROD ? 'https://cybersakhi-backend.vercel.app' : 'http://localhost:5000';
     setBackendUrl(url);
     
-    // Only auto-test if we're in development mode
-    if (!import.meta.env.PROD) {
-      testConnection();
-    } else {
-      // In production, just show the widget without auto-testing
-      setStatus('ready');
-    }
+    // Don't auto-test to avoid errors - let user manually test
+    setStatus('ready');
   }, []);
 
   const testDatabase = async () => {
