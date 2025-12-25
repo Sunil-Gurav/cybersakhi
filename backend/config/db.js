@@ -42,20 +42,20 @@ const connectDB = async() => {
             await new Promise(resolve => setTimeout(resolve, 500));
         }
         
-        // Serverless-optimized connection options
+        // Connection options optimized for compatibility
         const options = {
-            // Mongoose-specific options
-            bufferCommands: false, // Disable mongoose buffering for serverless
-            bufferMaxEntries: 0,   // Disable mongoose buffering queue
+            // Enable buffering for local development, disable for production
+            bufferCommands: process.env.NODE_ENV === 'production' ? false : true,
             
-            // MongoDB driver options
-            serverSelectionTimeoutMS: 8000, // 8 seconds for server selection
-            socketTimeoutMS: 25000, // 25 seconds for socket operations
-            connectTimeoutMS: 8000, // 8 seconds for initial connection
-            maxPoolSize: 1, // Single connection for serverless
-            minPoolSize: 0,  // No minimum connections for serverless
-            maxIdleTimeMS: 25000, // Close connections after 25 seconds of inactivity
-            heartbeatFrequencyMS: 8000, // Check connection every 8 seconds
+            // Connection timeouts
+            serverSelectionTimeoutMS: 8000,
+            socketTimeoutMS: 25000,
+            connectTimeoutMS: 8000,
+            
+            // Connection pool settings
+            maxPoolSize: process.env.NODE_ENV === 'production' ? 1 : 5,
+            minPoolSize: 0,
+            maxIdleTimeMS: 25000,
         };
         
         const conn = await mongoose.connect(mongoUri, options);

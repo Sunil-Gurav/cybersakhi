@@ -27,8 +27,17 @@ const initializeDatabase = async () => {
         console.log("📊 Database connected successfully");
     } catch (error) {
         console.error("❌ Database connection failed:", error.message);
-        console.error("⚠️ Server will continue without database connection");
-        // Don't exit the process, let the server start anyway
+        
+        // Try simple connection as fallback
+        try {
+            console.log("🔄 Trying simple connection method...");
+            const simpleConnect = (await import('./config/db-simple.js')).default;
+            await simpleConnect();
+            console.log("📊 Database connected using simple method");
+        } catch (simpleError) {
+            console.error("❌ Simple connection also failed:", simpleError.message);
+            console.error("⚠️ Server will continue without database connection");
+        }
     }
 };
 
