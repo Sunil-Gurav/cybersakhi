@@ -10,6 +10,38 @@ const ConnectionTest = () => {
     testConnection();
   }, []);
 
+  const testDatabase = async () => {
+    try {
+      setStatus('testing');
+      setError(null);
+      
+      console.log('🔍 Testing database connection...');
+      
+      const result = await api.get('/db-test', {
+        timeout: 15000 // 15 second timeout for DB operations
+      });
+      
+      setResponse(result.data);
+      setStatus('success');
+      console.log('✅ Database connection successful:', result.data);
+    } catch (err) {
+      console.error('❌ Database connection failed:', err);
+      
+      let errorMessage = 'Database connection failed';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response) {
+        errorMessage = `HTTP ${err.response.status}: ${err.response.statusText}`;
+      } else {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      setStatus('error');
+    }
+  };
+
   const testConnection = async () => {
     try {
       setStatus('testing');
@@ -18,7 +50,7 @@ const ConnectionTest = () => {
       console.log('🔍 Testing connection to backend...');
       console.log('🔍 API Base URL:', api.defaults.baseURL);
       
-      // Test with a simple GET request
+      // Test with a simple GET request first
       const result = await api.get('/', {
         timeout: 10000, // 10 second timeout
         headers: {
@@ -27,9 +59,18 @@ const ConnectionTest = () => {
         }
       });
       
-      setResponse(result.data);
+      // Also test the environment endpoint
+      const testResult = await api.get('/test', {
+        timeout: 5000
+      });
+      
+      setResponse({
+        ...result.data,
+        environment: testResult.data.environment
+      });
       setStatus('success');
       console.log('✅ Backend connection successful:', result.data);
+      console.log('✅ Environment test:', testResult.data);
     } catch (err) {
       console.error('❌ Backend connection failed:', err);
       
@@ -41,6 +82,9 @@ const ConnectionTest = () => {
         errorMessage = 'Request timeout - Backend might be slow';
       } else if (err.response) {
         errorMessage = `HTTP ${err.response.status}: ${err.response.statusText}`;
+        if (err.response.data?.error) {
+          errorMessage += ` - ${err.response.data.error}`;
+        }
       } else if (err.request) {
         errorMessage = 'No response from server - Check network connection';
       } else {
@@ -92,6 +136,13 @@ const ConnectionTest = () => {
           <div style={{ fontSize: '10px', color: 'green' }}>
             {response.message}
           </div>
+          {response.environment && (
+            <div style={{ fontSize: '10px', marginTop: '3px' }}>
+              <strong>Env:</strong> MongoDB: {response.environment.mongoUri}, 
+              JWT: {response.environment.jwtSecret}, 
+              Email: {response.environment.emailUser}
+            </div>
+          )}
         </div>
       )}
 
@@ -104,17 +155,29 @@ const ConnectionTest = () => {
         </div>
       )}
 
-      <button 
-        onClick={testConnection}
-        style={{ 
-          marginTop: '5px', 
-          padding: '2px 8px', 
-          fontSize: '10px',
-          cursor: 'pointer'
-        }}
-      >
-        🔄 Test Again
-      </button>
+      <div style={{ marginTop: '5px', display: 'flex', gap: '5px' }}>
+        <button 
+          onClick={testConnection}
+          style={{ 
+            padding: '2px 8px', 
+            fontSize: '10px',
+            cursor: 'pointer'
+          }}
+        >
+          🔄 Test API
+        </button>
+        
+        <button 
+          onClick={testDatabase}
+          style={{ 
+            padding: '2px 8px', 
+            fontSize: '10px',
+            cursor: 'pointer'
+          }}
+        >
+          🗄️ Test DB
+        </button>
+      </div>
     </div>
   );
 };

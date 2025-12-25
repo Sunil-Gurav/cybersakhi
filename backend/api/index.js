@@ -6,21 +6,7 @@ import cors from "cors";
 // Load environment variables first
 dotenv.config();
 
-// Temporary hardcoded env vars for Vercel debugging
-if (!process.env.MONGO_URI) {
-    process.env.MONGO_URI = 'mongodb+srv://habitspark01_db_user:sakhisathi9482411050@cluster0.3nbnlgf.mongodb.net/cybersakhi';
-}
-if (!process.env.JWT_SECRET) {
-    process.env.JWT_SECRET = 'your_jwt_secret_here_cybersakhi_2024';
-}
-if (!process.env.EMAIL_USER) {
-    process.env.EMAIL_USER = 'jeevanamrit5@gmail.com';
-}
-if (!process.env.EMAIL_PASS) {
-    process.env.EMAIL_PASS = 'eqjgvzedyqhpmlvj';
-}
-
-console.log('🔍 Environment variables loaded:');
+console.log('🔍 Environment variables status:');
 console.log('🔍 MONGO_URI:', process.env.MONGO_URI ? 'Set' : 'Missing');
 console.log('🔍 JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Missing');
 console.log('🔍 EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
@@ -41,13 +27,60 @@ import familyRoutes from "../routes/familyRoutes.js";
 // Create Express app
 const app = express();
 
-// Connect to MongoDB with error handling
-connectDB()
-    .then(() => console.log("📊 MongoDB connected successfully in serverless function"))
-    .catch(error => {
-        console.error("❌ MongoDB connection failed in serverless function:", error.message);
-        // Continue without exiting in serverless environment
-    });
+// Initialize MongoDB connection
+let dbConnection = null;
+
+// Connect to MongoDB with proper error handling for serverless
+const initializeDB = async () => {
+    if (!dbConnection) {
+        try {
+            console.log("🔄 Initializing MongoDB connection...");
+            dbConnection = await connectDB();
+            console.log("📊 MongoDB initialized successfully in serverless function");
+        } catch (error) {
+            console.error("❌ MongoDB initialization failed:", error.message);
+            dbConnection = null;
+            // Don't throw here - let individual requests handle the connection
+        }
+    }
+    return dbConnection;
+};
+
+// Middleware to ensure DB connection before each request
+const ensureDBConnection = async (req, res, next) => {
+    try {
+        if (!dbConnection) {
+            console.log("🔄 No cached connection, attempting to connect...");
+            await initializeDB();
+        }
+        
+        // Check if connection is still alive
+        const mongoose = await import('mongoose');
+        if (mongoose.default.connection.readyState !== 1) {
+            console.log("⚠️ Connection not ready, reconnecting...");
+            dbConnection = null;
+            await initializeDB();
+        }
+        
+        if (!dbConnection) {
+            return res.status(503).json({
+                message: "Database connection unavailable",
+                error: "Unable to connect to MongoDB"
+            });
+        }
+        
+        next();
+    } catch (error) {
+        console.error("❌ Database connection middleware error:", error);
+        return res.status(503).json({
+            message: "Database connection error",
+            error: error.message
+        });
+    }
+};
+
+// Initialize DB connection on startup
+initializeDB();
 
 // CORS Configuration - More permissive for debugging
 const corsOptions = {
@@ -83,7 +116,7 @@ const corsOptions = {
             callback(null, true);
         } else {
             console.log('🚫 CORS blocked origin:', origin);
-            console.log('📋 Allowed origins:', allowedOrigins);
+            console.log('� AlRlowed origins:', allowedOrigins);
             callback(null, true); // Allow all for debugging - remove in production
         }
     },
@@ -150,16 +183,73 @@ app.get("/health", (req, res) => {
     });
 });
 
-// API Routes
-app.use("/auth", authRoutes);
-app.use("/ai", aiRoutes);
-app.use("/sos", sosRoutes);
-app.use("/assistant", assistantRoutes);
-app.use("/user-data", userDataRoutes);
-app.use("/crime-analysis", crimeAnalysisRoutes);
-app.use("/ai/location", locationAnalysisRoutes);
-app.use("/activities", userActivityRoutes);
-app.use("/family", familyRoutes);
+// Database connection test endpoint
+app.get("/db-test", async (req, res) => {
+    try {
+        const mongoose = await import('mongoose');
+        const connectionState = mongoose.default.connection.readyState;
+        
+        const states = {
+            0: 'disconnected',
+            1: 'connected',
+            2: 'connecting',
+            3: 'disconnecting'
+        };
+        
+        // Try to connect if not connected
+        if (connectionState !== 1) {
+            console.log('🔄 DB Test - Attempting connection...');
+            await initializeDB();
+        }
+        
+        // Test a simple query
+        const User = mongoose.default.model('User') || (await import('../models/User.js')).default;
+        const userCount = await User.countDocuments();
+        
+        res.json({
+            status: "Database connection successful",
+            connectionState: states[mongoose.default.connection.readyState],
+            userCount,
+            timestamp: new Date().toISOString(),
+            mongoUri: process.env.MONGO_URI ? 'Set' : 'Missing',
+            host: mongoose.default.connection.host
+        });
+    } catch (error) {
+        console.error('❌ DB Test Error:', error);
+        res.status(500).json({
+            status: "Database connection failed",
+            error: error.message,
+            timestamp: new Date().toISOString(),
+            mongoUri: process.env.MONGO_URI ? 'Set' : 'Missing'
+        });
+    }
+});
+
+// API Routes - Add DB connection middleware to all routes
+app.use("/auth", ensureDBConnection, authRoutes);
+app.use("/ai", ensureDBConnection, aiRoutes);
+app.use("/sos", ensureDBConnection, sosRoutes);
+app.use("/assistant", ensureDBConnection, assistantRoutes);
+app.use("/user-data", ensureDBConnection, userDataRoutes);
+app.use("/crime-analysis", ensureDBConnection, crimeAnalysisRoutes);
+app.use("/ai/location", ensureDBConnection, locationAnalysisRoutes);
+app.use("/activities", ensureDBConnection, userActivityRoutes);
+app.use("/family", ensureDBConnection, familyRoutes);
+
+// Test endpoint without DB dependency
+app.get("/test", (req, res) => {
+    res.json({
+        message: "Test endpoint working",
+        timestamp: new Date().toISOString(),
+        environment: {
+            nodeEnv: process.env.NODE_ENV,
+            mongoUri: process.env.MONGO_URI ? 'Set' : 'Missing',
+            jwtSecret: process.env.JWT_SECRET ? 'Set' : 'Missing',
+            emailUser: process.env.EMAIL_USER ? 'Set' : 'Missing',
+            emailPass: process.env.EMAIL_PASS ? 'Set' : 'Missing'
+        }
+    });
+});
 
 // Error handling middleware - Improved for production
 app.use((err, req, res, next) => {
@@ -203,33 +293,3 @@ app.use((req, res) => {
 
 // For Vercel serverless functions
 export default app;
-
-// For local development
-if (process.env.NODE_ENV !== "production") {
-    const PORT = process.env.PORT || 5000;
-    
-    // Create HTTP server for Socket.IO
-    const server = http.createServer(app);
-    
-    // Socket.IO setup
-    const io = new Server(server, {
-        cors: corsOptions
-    });
-    
-    // Store io instance in app for access in routes
-    app.set("io", io);
-    
-    // Socket.IO connection handling
-    io.on("connection", (socket) => {
-        console.log("👤 User connected:", socket.id);
-        
-        socket.on("disconnect", () => {
-            console.log("👋 User disconnected:", socket.id);
-        });
-    });
-    
-    server.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT}`);
-        console.log(`📡 Socket.IO enabled`);
-    });
-}
