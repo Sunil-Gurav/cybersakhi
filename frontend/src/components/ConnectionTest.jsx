@@ -18,7 +18,7 @@ const ConnectionTest = () => {
       console.log('🔍 Testing database connection...');
       
       const result = await api.get('/db-test', {
-        timeout: 15000 // 15 second timeout for DB operations
+        timeout: 45000 // 45 second timeout for DB operations
       });
       
       setResponse(result.data);
@@ -50,9 +50,20 @@ const ConnectionTest = () => {
       console.log('🔍 Testing connection to backend...');
       console.log('🔍 API Base URL:', api.defaults.baseURL);
       
+      // First try a quick ping
+      try {
+        console.log('🏓 Trying quick ping...');
+        const pingResult = await api.get('/ping', {
+          timeout: 5000 // 5 second timeout for ping
+        });
+        console.log('✅ Ping successful:', pingResult.data);
+      } catch (pingError) {
+        console.log('⚠️ Ping failed, trying main endpoint...');
+      }
+      
       // Test with a simple GET request first
       const result = await api.get('/', {
-        timeout: 10000, // 10 second timeout
+        timeout: 30000, // 30 second timeout to match api client
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -61,7 +72,7 @@ const ConnectionTest = () => {
       
       // Also test the environment endpoint
       const testResult = await api.get('/test', {
-        timeout: 5000
+        timeout: 30000 // 30 second timeout
       });
       
       setResponse({
@@ -76,17 +87,19 @@ const ConnectionTest = () => {
       
       let errorMessage = 'Unknown error';
       
-      if (err.code === 'NETWORK_ERROR' || err.message === 'Network Error') {
-        errorMessage = 'Network Error - Check CORS or backend availability';
-      } else if (err.code === 'ECONNABORTED') {
-        errorMessage = 'Request timeout - Backend might be slow';
+      if (err.code === 'ECONNABORTED') {
+        errorMessage = `Request timeout (${err.config?.timeout || 'unknown'}ms) - Backend might be slow or unavailable`;
+      } else if (err.code === 'NETWORK_ERROR' || err.message === 'Network Error') {
+        errorMessage = 'Network Error - Check CORS, backend availability, or internet connection';
+      } else if (err.code === 'ERR_NETWORK') {
+        errorMessage = 'Network Error - Backend server might be down or unreachable';
       } else if (err.response) {
         errorMessage = `HTTP ${err.response.status}: ${err.response.statusText}`;
         if (err.response.data?.error) {
           errorMessage += ` - ${err.response.data.error}`;
         }
       } else if (err.request) {
-        errorMessage = 'No response from server - Check network connection';
+        errorMessage = 'No response from server - Check network connection and backend status';
       } else {
         errorMessage = err.message;
       }
@@ -127,6 +140,9 @@ const ConnectionTest = () => {
         <strong>API URL:</strong> 
         <div style={{ fontSize: '10px', wordBreak: 'break-all' }}>
           {import.meta.env.PROD ? 'https://cybersakhi-backend.vercel.app' : 'http://localhost:5000'}
+        </div>
+        <div style={{ fontSize: '10px', color: 'gray', marginTop: '2px' }}>
+          Mode: {import.meta.env.PROD ? 'Production' : 'Development'}
         </div>
       </div>
 

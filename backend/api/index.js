@@ -195,7 +195,8 @@ app.get("/", (req, res) => {
         message: "🛡️ CyberSakhi Backend API is running!",
         status: "healthy",
         timestamp: new Date().toISOString(),
-        version: "1.0.0"
+        version: "1.0.0",
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
@@ -203,7 +204,18 @@ app.get("/health", (req, res) => {
     res.json({
         status: "OK",
         uptime: process.uptime(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        memory: process.memoryUsage(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Quick ping endpoint for fast connectivity test
+app.get("/ping", (req, res) => {
+    res.json({ 
+        pong: true, 
+        timestamp: new Date().toISOString(),
+        server: "CyberSakhi Backend"
     });
 });
 
