@@ -19,7 +19,21 @@ import userActivityRoutes from "./routes/userActivityRoutes.js";
 import familyRoutes from "./routes/familyRoutes.js";
 
 dotenv.config();
-connectDB();
+
+// Initialize database connection with error handling
+const initializeDatabase = async () => {
+    try {
+        await connectDB();
+        console.log("📊 Database connected successfully");
+    } catch (error) {
+        console.error("❌ Database connection failed:", error.message);
+        console.error("⚠️ Server will continue without database connection");
+        // Don't exit the process, let the server start anyway
+    }
+};
+
+// Initialize database
+initializeDatabase();
 
 const app = express();
 app.use(express.json());
