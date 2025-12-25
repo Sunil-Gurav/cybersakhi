@@ -1,18 +1,22 @@
 {
   "name": "cybersakhi-project",
   "version": "1.0.0",
-  "description": "CyberSakhi - AI-powered safety platform",
+  "description": "CyberSakhi - AI-powered safety platform (Multi-service project manager)",
   "main": "index.js",
   "type": "commonjs",
+  "private": true,
   "scripts": {
     "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../ai_services && pip install -r requirements.txt",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\" \"npm run ai\"",
     "backend": "cd backend && npm start",
-    "frontend": "cd frontend && npm run dev",
+    "frontend": "cd frontend && npm run dev", 
     "ai": "cd ai_services && python server.py",
     "build": "cd frontend && npm run build",
-    "start": "echo 'Use npm run dev to start all services or run individual services from their directories'",
-    "test": "echo 'No tests specified'"
+    "start": "node index.js",
+    "help": "node index.js --help",
+    "test": "echo 'Run tests in individual service directories'",
+    "clean": "rm -rf node_modules frontend/node_modules backend/node_modules frontend/dist",
+    "setup": "npm run install-all"
   },
   "dependencies": {
     "concurrently": "^8.2.2"
@@ -38,8 +42,13 @@
     "ai",
     "react",
     "nodejs",
-    "python"
+    "python",
+    "multi-service",
+    "project-manager"
   ],
   "author": "Sunil Gurav",
-  "license": "MIT"
+  "license": "MIT",
+  "bin": {
+    "cybersakhi": "./index.js"
+  }
 }

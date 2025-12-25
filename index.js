@@ -15,7 +15,34 @@
  * npm run ai         - Start only AI services
  */
 
-console.log(`
+const path = require('path');
+const { spawn } = require('child_process');
+
+// Project configuration
+const PROJECT_CONFIG = {
+  name: 'CyberSakhi',
+  version: require('./package.json').version,
+  services: {
+    frontend: {
+      port: 3000,
+      path: './frontend',
+      command: 'npm run dev'
+    },
+    backend: {
+      port: 5000,
+      path: './backend', 
+      command: 'npm start'
+    },
+    ai: {
+      port: 8000,
+      path: './ai_services',
+      command: 'python server.py'
+    }
+  }
+};
+
+function showHelp() {
+  console.log(`
 🛡️  CyberSakhi - AI-Powered Safety Platform
 ===========================================
 
@@ -34,18 +61,31 @@ For individual service management, navigate to respective directories:
 
 Happy coding! 🚀
 `);
+}
 
-// If run directly, show help
-if (require.main === module) {
+// Main function
+function main() {
+  const args = process.argv.slice(2);
+  
+  if (args.includes('--help') || args.includes('-h')) {
+    showHelp();
+    return;
+  }
+  
+  if (args.includes('--version') || args.includes('-v')) {
+    console.log(`CyberSakhi v${PROJECT_CONFIG.version}`);
+    return;
+  }
+  
+  // Default behavior - show help
+  showHelp();
   console.log('\n💡 Tip: Use "npm run dev" to start all services together!\n');
 }
 
-module.exports = {
-  name: 'CyberSakhi',
-  version: require('./package.json').version,
-  services: {
-    frontend: 'http://localhost:3000',
-    backend: 'http://localhost:5000', 
-    ai: 'http://localhost:8000'
-  }
-};
+// If run directly, execute main function
+if (require.main === module) {
+  main();
+}
+
+// Export configuration for other modules
+module.exports = PROJECT_CONFIG;
