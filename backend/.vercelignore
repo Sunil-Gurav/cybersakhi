@@ -1,4 +1,4 @@
-# Vercel ignore file
+# Vercel ignore file - Keep deployment lean
 node_modules
 .env.local
 .env.development
@@ -6,14 +6,12 @@ node_modules
 *.log
 .DS_Store
 Thumbs.db
+.git
+.gitignore
+README.md
 
-# Keep only necessary files for deployment
-!api/
-!config/
-!controllers/
-!middleware/
-!models/
-!routes/
-!utils/
-!package.json
-!vercel.json
+# Development files
+server.js
+nodemon.json
+
+# Keep only essential files for serverless deployment
