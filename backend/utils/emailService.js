@@ -27,7 +27,10 @@ export const sendOTPEmail = async (email, otp, name) => {
         
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
             console.error('❌ Email credentials missing');
-            return { success: false, error: 'Email credentials not configured' };
+            console.error('❌ EMAIL_USER exists:', !!process.env.EMAIL_USER);
+            console.error('❌ EMAIL_PASS exists:', !!process.env.EMAIL_PASS);
+            console.error('❌ All env vars:', Object.keys(process.env).filter(key => key.includes('EMAIL')));
+            return { success: false, error: 'Email credentials not configured on server' };
         }
         
         const mailOptions = {

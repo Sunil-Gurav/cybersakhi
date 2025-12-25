@@ -99,7 +99,11 @@ export const sendRegistrationOTP = async (req, res) => {
         console.error("❌ Error stack:", error.stack);
         res.status(500).json({ 
             msg: "Server Error",
-            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
+            error: error.message, // Show error in production for debugging
+            details: {
+                name: error.name,
+                stack: error.stack?.split('\n')[0] // First line of stack
+            }
         });
     }
 };

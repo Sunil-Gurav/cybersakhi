@@ -6,6 +6,26 @@ import cors from "cors";
 // Load environment variables first
 dotenv.config();
 
+// Temporary hardcoded env vars for Vercel debugging
+if (!process.env.MONGO_URI) {
+    process.env.MONGO_URI = 'mongodb+srv://habitspark01_db_user:sakhisathi9482411050@cluster0.3nbnlgf.mongodb.net/cybersakhi';
+}
+if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = 'your_jwt_secret_here_cybersakhi_2024';
+}
+if (!process.env.EMAIL_USER) {
+    process.env.EMAIL_USER = 'jeevanamrit5@gmail.com';
+}
+if (!process.env.EMAIL_PASS) {
+    process.env.EMAIL_PASS = 'eqjgvzedyqhpmlvj';
+}
+
+console.log('🔍 Environment variables loaded:');
+console.log('🔍 MONGO_URI:', process.env.MONGO_URI ? 'Set' : 'Missing');
+console.log('🔍 JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Missing');
+console.log('🔍 EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
+console.log('🔍 EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Missing');
+
 // Import after dotenv config
 import connectDB from "../config/db.js";
 import authRoutes from "../routes/authRoutes.js";
@@ -22,9 +42,12 @@ import familyRoutes from "../routes/familyRoutes.js";
 const app = express();
 
 // Connect to MongoDB with error handling
-connectDB().catch(error => {
-    console.error("❌ MongoDB connection failed:", error.message);
-});
+connectDB()
+    .then(() => console.log("📊 MongoDB connected successfully in serverless function"))
+    .catch(error => {
+        console.error("❌ MongoDB connection failed in serverless function:", error.message);
+        // Continue without exiting in serverless environment
+    });
 
 // CORS Configuration - More permissive for debugging
 const corsOptions = {
