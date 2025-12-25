@@ -21,6 +21,15 @@ export const generateOTP = () => {
 // Send OTP email
 export const sendOTPEmail = async (email, otp, name) => {
     try {
+        console.log('📧 Email Service - Attempting to send OTP to:', email);
+        console.log('📧 Email Service - EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
+        console.log('📧 Email Service - EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Missing');
+        
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            console.error('❌ Email credentials missing');
+            return { success: false, error: 'Email credentials not configured' };
+        }
+        
         const mailOptions = {
             from: {
                 name: 'CyberSakhi Security',

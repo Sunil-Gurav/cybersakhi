@@ -7,28 +7,42 @@ import { generateOTP, sendOTPEmail, sendWelcomeEmail, sendPasswordResetOTP, send
 /* SEND OTP FOR REGISTRATION */
 export const sendRegistrationOTP = async (req, res) => {
     try {
+        console.log('🔍 Send OTP Request Body:', req.body);
+        console.log('🔍 Environment Check - EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
+        console.log('🔍 Environment Check - MONGO_URI:', process.env.MONGO_URI ? 'Set' : 'Missing');
+        console.log('🔍 Environment Check - JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Missing');
+        
         const { name, email, password, role } = req.body;
 
         if (!name || !email || !password || !role) {
+            console.log('❌ Missing required fields:', { name: !!name, email: !!email, password: !!password, role: !!role });
             return res.status(400).json({ msg: "All fields are required!" });
         }
 
+        console.log('🔍 Checking existing user for email:', email);
+        
         // Check if email already exists
         const existingUser = await User.findOne({ email });
+        console.log('🔍 Existing user found:', !!existingUser);
+        
         if (existingUser && existingUser.isEmailVerified) {
+            console.log('❌ Email already verified');
             return res.status(400).json({ msg: "Email already registered and verified!" });
         }
 
         // Generate OTP
         const otp = generateOTP();
         const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        console.log('✅ OTP generated:', otp);
 
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('✅ Password hashed');
 
         // Create or update user with OTP
         let user;
         if (existingUser) {
+            console.log('🔄 Updating existing user');
             // Update existing unverified user
             user = await User.findOneAndUpdate(
                 { email },
@@ -43,6 +57,7 @@ export const sendRegistrationOTP = async (req, res) => {
                 { new: true }
             );
         } else {
+            console.log('🆕 Creating new user');
             // Create new user
             user = await User.create({
                 name,
@@ -55,17 +70,23 @@ export const sendRegistrationOTP = async (req, res) => {
                 familyMembers: [],
             });
         }
+        
+        console.log('✅ User created/updated:', user._id);
 
         // Send OTP email
+        console.log('📧 Attempting to send OTP email...');
         const emailResult = await sendOTPEmail(email, otp, name);
+        console.log('📧 Email result:', emailResult);
         
         if (!emailResult.success) {
+            console.error('❌ Email sending failed:', emailResult.error);
             return res.status(500).json({ 
                 msg: "Failed to send OTP email. Please try again.",
                 error: emailResult.error 
             });
         }
 
+        console.log('✅ OTP sent successfully');
         res.json({
             msg: "OTP sent successfully! Please check your email.",
             userId: user._id,
@@ -74,8 +95,12 @@ export const sendRegistrationOTP = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Send OTP error:", error);
-        res.status(500).json({ msg: "Server Error" });
+        console.error("❌ Send OTP error:", error);
+        console.error("❌ Error stack:", error.stack);
+        res.status(500).json({ 
+            msg: "Server Error",
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
+        });
     }
 };
 
