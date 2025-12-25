@@ -1,6 +1,6 @@
 // backend/controllers/sosController.js
 import Sos from "../models/sos.js";
-import User from "../models/user.js";
+import User from "../models/User.js";
 
 
 // ===============================================
