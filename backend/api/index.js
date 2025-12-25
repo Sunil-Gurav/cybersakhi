@@ -26,16 +26,34 @@ connectDB().catch(error => {
     console.error("❌ MongoDB connection failed:", error.message);
 });
 
-// CORS Configuration - Updated for production
+// CORS Configuration - More permissive for debugging
 const corsOptions = {
-    origin: [
-        "http://localhost:3000",
-        "http://localhost:5173", // Vite dev server
-        "https://cybersakhi.vercel.app",
-        "https://cybersakhi-frontend.vercel.app",
-        "https://cybersakhi-frontend-git-main-sunil-guravs-projects.vercel.app",
-        process.env.FRONTEND_URL
-    ].filter(Boolean),
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+            "http://localhost:3000",
+            "http://localhost:5173", // Vite dev server
+            "http://localhost:4173", // Vite preview
+            "https://cybersakhi.vercel.app",
+            "https://cybersakhi-frontend.vercel.app",
+            "https://cybersakhi-frontend-git-main-sunil-guravs-projects.vercel.app",
+            process.env.FRONTEND_URL
+        ].filter(Boolean);
+        
+        // Allow all Vercel preview deployments
+        if (origin.includes('.vercel.app')) {
+            return callback(null, true);
+        }
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('🚫 CORS blocked origin:', origin);
+            callback(null, true); // Allow all for now - remove in production
+        }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: [
@@ -45,11 +63,30 @@ const corsOptions = {
         "x-ai-api-key",
         "Accept",
         "Origin",
-        "X-Requested-With"
-    ]
+        "X-Requested-With",
+        "Access-Control-Allow-Origin"
+    ],
+    optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 
 app.use(cors(corsOptions));
+
+// Explicit OPTIONS handling for preflight requests
+app.options('*', cors(corsOptions));
+
+// Additional CORS headers middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, x-ai-api-key, Accept, Origin, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));

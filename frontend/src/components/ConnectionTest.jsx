@@ -16,15 +16,39 @@ const ConnectionTest = () => {
       setError(null);
       
       console.log('🔍 Testing connection to backend...');
-      const result = await api.get('/');
+      console.log('🔍 API Base URL:', api.defaults.baseURL);
+      
+      // Test with a simple GET request
+      const result = await api.get('/', {
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
       
       setResponse(result.data);
       setStatus('success');
       console.log('✅ Backend connection successful:', result.data);
     } catch (err) {
-      setError(err.message);
-      setStatus('error');
       console.error('❌ Backend connection failed:', err);
+      
+      let errorMessage = 'Unknown error';
+      
+      if (err.code === 'NETWORK_ERROR' || err.message === 'Network Error') {
+        errorMessage = 'Network Error - Check CORS or backend availability';
+      } else if (err.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout - Backend might be slow';
+      } else if (err.response) {
+        errorMessage = `HTTP ${err.response.status}: ${err.response.statusText}`;
+      } else if (err.request) {
+        errorMessage = 'No response from server - Check network connection';
+      } else {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      setStatus('error');
     }
   };
 

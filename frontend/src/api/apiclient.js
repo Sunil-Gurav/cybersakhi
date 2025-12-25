@@ -21,9 +21,11 @@ const api = axios.create({
   baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
+    "Accept": "application/json",
     "x-ai-api-key": import.meta.env.VITE_AI_API_KEY || "",
   },
   timeout: 30000, // 30 second timeout for production
+  withCredentials: false, // Set to false for CORS issues
 });
 
 // Log the API base URL for debugging
