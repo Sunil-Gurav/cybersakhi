@@ -26,17 +26,27 @@ connectDB().catch(error => {
     console.error("❌ MongoDB connection failed:", error.message);
 });
 
-// CORS Configuration
+// CORS Configuration - Updated for production
 const corsOptions = {
     origin: [
         "http://localhost:3000",
+        "http://localhost:5173", // Vite dev server
         "https://cybersakhi.vercel.app",
         "https://cybersakhi-frontend.vercel.app",
+        "https://cybersakhi-frontend-git-main-sunil-guravs-projects.vercel.app",
         process.env.FRONTEND_URL
     ].filter(Boolean),
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: [
+        "Content-Type", 
+        "Authorization", 
+        "x-auth-token",
+        "x-ai-api-key",
+        "Accept",
+        "Origin",
+        "X-Requested-With"
+    ]
 };
 
 app.use(cors(corsOptions));

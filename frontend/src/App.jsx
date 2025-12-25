@@ -10,6 +10,7 @@ import {
 import Navbar from "./components/Navbar";
 import UserNavbar from "./components/UserNavbar";
 import Footer from "./components/Footer";
+import ConnectionTest from "./components/ConnectionTest"; // 🔍 Temporary for testing
 
 // 🏠 Pages
 import Home from "./pages/Home";
@@ -48,6 +49,9 @@ const App = () => {
 
   return (
     <Router>
+      {/* 🔍 Connection Test - Remove after testing */}
+      <ConnectionTest />
+      
       {/* 🧭 Conditional Navbar */}
       {isLoggedIn ? <UserNavbar /> : <Navbar />}
 
