@@ -30,7 +30,12 @@ connectDB().catch(error => {
 const corsOptions = {
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
+        if (!origin) {
+            console.log('✅ CORS allowed - No origin (mobile/curl)');
+            return callback(null, true);
+        }
+        
+        console.log('🔍 CORS Request from origin:', origin);
         
         const allowedOrigins = [
             "http://localhost:3000",
@@ -38,23 +43,28 @@ const corsOptions = {
             "http://localhost:4173", // Vite preview
             "https://cybersakhi.vercel.app",
             "https://cybersakhi-frontend.vercel.app",
+            "https://cybersakhi-121w.vercel.app", // Current frontend deployment
             "https://cybersakhi-frontend-git-main-sunil-guravs-projects.vercel.app",
             process.env.FRONTEND_URL
         ].filter(Boolean);
         
-        // Allow all Vercel preview deployments
-        if (origin.includes('.vercel.app')) {
+        // Allow all Vercel preview deployments and cybersakhi domains
+        if (origin.includes('.vercel.app') && 
+            (origin.includes('cybersakhi') || origin.includes('sunil-gurav'))) {
+            console.log('✅ CORS allowed - Vercel cybersakhi domain:', origin);
             return callback(null, true);
         }
         
         if (allowedOrigins.indexOf(origin) !== -1) {
+            console.log('✅ CORS allowed - Specific origin:', origin);
             callback(null, true);
         } else {
             console.log('🚫 CORS blocked origin:', origin);
-            callback(null, true); // Allow all for now - remove in production
+            console.log('📋 Allowed origins:', allowedOrigins);
+            callback(null, true); // Allow all for debugging - remove in production
         }
     },
-    credentials: true,
+    credentials: false, // Disable credentials for CORS simplicity
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: [
         "Content-Type", 
@@ -74,18 +84,25 @@ app.use(cors(corsOptions));
 // Explicit OPTIONS handling for preflight requests
 app.options('*', cors(corsOptions));
 
-// Additional CORS headers middleware
+// Additional CORS middleware for extra safety
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, x-ai-api-key, Accept, Origin, X-Requested-With');
-    res.header('Access-Control-Allow-Credentials', 'true');
+    const origin = req.headers.origin;
     
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-    } else {
-        next();
+    // Allow cybersakhi domains
+    if (origin && origin.includes('cybersakhi') && origin.includes('.vercel.app')) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token, x-ai-api-key, Accept, Origin, X-Requested-With');
     }
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        console.log('🔄 Handling OPTIONS preflight for:', req.headers.origin);
+        return res.status(200).end();
+    }
+    
+    next();
 });
 
 // Middleware

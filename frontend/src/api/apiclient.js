@@ -25,7 +25,7 @@ const api = axios.create({
     "x-ai-api-key": import.meta.env.VITE_AI_API_KEY || "",
   },
   timeout: 30000, // 30 second timeout for production
-  withCredentials: false, // Set to false for CORS issues
+  withCredentials: false, // Disable credentials for CORS simplicity
 });
 
 // Log the API base URL for debugging
