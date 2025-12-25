@@ -2,6 +2,8 @@
   "name": "cybersakhi-project",
   "version": "1.0.0",
   "description": "CyberSakhi - AI-powered safety platform",
+  "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../ai_services && pip install -r requirements.txt",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\" \"npm run ai\"",
@@ -9,7 +11,8 @@
     "frontend": "cd frontend && npm run dev",
     "ai": "cd ai_services && python server.py",
     "build": "cd frontend && npm run build",
-    "start": "npm run dev"
+    "start": "echo 'Use npm run dev to start all services or run individual services from their directories'",
+    "test": "echo 'No tests specified'"
   },
   "dependencies": {
     "concurrently": "^8.2.2"
@@ -20,5 +23,23 @@
   "workspaces": [
     "frontend",
     "backend"
-  ]
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sunil-Gurav/cybersakhi.git"
+  },
+  "keywords": [
+    "cybersecurity",
+    "safety",
+    "ai",
+    "react",
+    "nodejs",
+    "python"
+  ],
+  "author": "Sunil Gurav",
+  "license": "MIT"
 }
