@@ -2,9 +2,11 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import http from "http";
-import { Server } from "socket.io";
 
+// Load environment variables first
+dotenv.config();
+
+// Import after dotenv config
 import connectDB from "../config/db.js";
 import authRoutes from "../routes/authRoutes.js";
 import aiRoutes from "../routes/aiRoutes.js";
@@ -16,14 +18,13 @@ import locationAnalysisRoutes from "../routes/ai/location-analysis.js";
 import userActivityRoutes from "../routes/userActivityRoutes.js";
 import familyRoutes from "../routes/familyRoutes.js";
 
-// Load environment variables
-dotenv.config();
-
 // Create Express app
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB with error handling
+connectDB().catch(error => {
+    console.error("❌ MongoDB connection failed:", error.message);
+});
 
 // CORS Configuration
 const corsOptions = {
@@ -73,20 +74,43 @@ app.use("/ai/location", locationAnalysisRoutes);
 app.use("/activities", userActivityRoutes);
 app.use("/family", familyRoutes);
 
-// Error handling middleware
+// Error handling middleware - Improved for production
 app.use((err, req, res, next) => {
-    console.error("❌ Server Error:", err.stack);
-    res.status(500).json({
-        message: "Something went wrong!",
-        error: process.env.NODE_ENV === "production" ? {} : err.message
-    });
+    console.error("❌ Server Error:", err);
+    
+    // Don't leak error details in production
+    const errorResponse = {
+        message: "Internal server error",
+        status: "error",
+        timestamp: new Date().toISOString()
+    };
+    
+    // Add error details only in development
+    if (process.env.NODE_ENV !== "production") {
+        errorResponse.error = err.message;
+        errorResponse.stack = err.stack;
+    }
+    
+    res.status(500).json(errorResponse);
 });
 
-// 404 handler
-app.use("*", (req, res) => {
+// 404 handler - Fixed for Express 5.x compatibility
+app.use((req, res) => {
     res.status(404).json({
-        message: "Route not found",
-        path: req.originalUrl
+        message: "API endpoint not found",
+        path: req.originalUrl,
+        method: req.method,
+        timestamp: new Date().toISOString(),
+        availableRoutes: [
+            "/auth/*",
+            "/ai/*", 
+            "/sos/*",
+            "/assistant/*",
+            "/user-data/*",
+            "/crime-analysis/*",
+            "/activities/*",
+            "/family/*"
+        ]
     });
 });
 
