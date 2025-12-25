@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Lock, Wifi, Smartphone, Eye } from "lucide-react";
-import "../styles/awareness.css";
+import "../styles/Awareness.css";
 
 const tips = [
   {
