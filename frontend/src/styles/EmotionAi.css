@@ -1,0 +1,99 @@
+.emotion-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #faf5ff, #ffffff, #f3e8ff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 7rem;
+}
+
+.emotion-box {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    width: 95%;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(126, 34, 206, 0.2);
+    border: 1.5px solid #e9d5ff;
+}
+
+.emotion-box h1 {
+    color: #7e22ce;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.emotion-box p {
+    color: #4b5563;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.emotion-input {
+    width: 100%;
+    min-height: 120px;
+    border: 1.8px solid #d8b4fe;
+    border-radius: 1rem;
+    padding: 1rem;
+    outline: none;
+    resize: none;
+    font-size: 0.95rem;
+    color: #4b5563;
+    background: #faf5ff;
+    transition: 0.3s ease;
+}
+
+.emotion-input:focus {
+    border-color: #9333ea;
+    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.15);
+}
+
+.btn-analyze {
+    background: linear-gradient(135deg, #9333ea, #7e22ce);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.6rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: 0.3s ease;
+    box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+}
+
+.btn-analyze:hover {
+    background: linear-gradient(135deg, #7e22ce, #581c87);
+    transform: translateY(-2px);
+}
+
+.emotion-result {
+    margin-top: 1.5rem;
+    padding: 1.2rem;
+    border-radius: 1rem;
+    color: white;
+    font-weight: 500;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.emotion-result.happy {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.emotion-result.sad {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+}
+
+.emotion-result.angry {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+.emotion-result.anxious {
+    background: linear-gradient(135deg, #f59e0b, #b45309);
+}
+
+.emotion-result.neutral {
+    background: linear-gradient(135deg, #9333ea, #7e22ce);
+}

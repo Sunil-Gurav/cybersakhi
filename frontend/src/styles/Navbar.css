@@ -1,0 +1,118 @@
+/* 🌸 Navbar Base */
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: linear-gradient(90deg, #9333ea, #7e22ce);
+    backdrop-filter: blur(12px);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    box-shadow: 0 4px 15px rgba(126, 34, 206, 0.25);
+    z-index: 100;
+    transition: all 0.3s ease-in-out;
+}
+
+
+/* 💜 Brand */
+
+.nav-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    text-decoration: none;
+}
+
+.nav-logo span {
+    color: #e9d5ff;
+}
+
+
+/* 🟣 Menu Button */
+
+.menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+
+/* 🌈 Nav Links */
+
+.nav-links {
+    display: flex;
+    width: 30%;
+    gap: 2rem;
+    list-style: none;
+    transition: all 0.4s ease;
+}
+
+.nav-links li a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-links li a:hover {
+    color: #e9d5ff;
+}
+
+
+/* 🟩 Active Page Highlight */
+
+.active-link {
+    color: #f5d0fe;
+    font-weight: 600;
+}
+
+.active-link::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #f5d0fe;
+    border-radius: 2px;
+}
+
+
+/* 📱 Responsive Styles */
+
+@media (max-width: 768px) {
+    .menu-btn {
+        display: block;
+    }
+    .nav-links {
+        position: absolute;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background: rgba(126, 34, 206, 0.95);
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem 0;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: all 0.4s ease-in-out;
+    }
+    .nav-links.open {
+        max-height: 300px;
+        opacity: 1;
+    }
+    .nav-links li a {
+        font-size: 1.1rem;
+    }
+}

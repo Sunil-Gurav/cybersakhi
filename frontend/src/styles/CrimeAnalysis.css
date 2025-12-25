@@ -1,0 +1,111 @@
+.crime-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #faf5ff, #ffffff, #f3e8ff);
+    padding: 7rem 2rem 3rem;
+    text-align: center;
+}
+
+.crime-header h1 {
+    color: #7e22ce;
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.crime-header p {
+    color: #4b5563;
+    font-size: 0.95rem;
+    max-width: 600px;
+    margin: 0.5rem auto 2rem auto;
+}
+
+.tab-navigation {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    gap: 10px;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #64748b;
+}
+
+.tab-btn:hover {
+    border-color: #8b5cf6;
+    color: #8b5cf6;
+}
+
+.tab-btn.active {
+    background: #8b5cf6;
+    color: white;
+    border-color: #8b5cf6;
+}
+
+.chart-card {
+    background: #fff;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    margin: 1.5rem auto;
+    box-shadow: 0 8px 25px rgba(126, 34, 206, 0.15);
+    max-width: 800px;
+    border: 1.5px solid #e9d5ff;
+    transition: 0.3s;
+}
+
+.chart-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(126, 34, 206, 0.25);
+}
+
+.chart-card h2 {
+    color: #581c87;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.insight-box {
+    background: linear-gradient(135deg, #9333ea, #7e22ce);
+    color: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    max-width: 750px;
+    margin: 2rem auto 0;
+    box-shadow: 0 10px 25px rgba(147, 51, 234, 0.3);
+}
+
+.insight-box h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.7rem;
+}
+
+.insight-box p {
+    font-size: 0.95rem;
+    line-height: 1.5rem;
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .crime-container {
+        padding: 7rem 1rem 3rem;
+    }
+    .crime-header h1 {
+        font-size: 1.8rem;
+    }
+    .tab-navigation {
+        flex-direction: column;
+        align-items: center;
+    }
+    .tab-btn {
+        width: 200px;
+    }
+}

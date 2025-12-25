@@ -1,0 +1,134 @@
+.profile-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #faf5ff, #ffffff, #f3e8ff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 7rem;
+    /* space for navbar */
+    padding-bottom: 3rem;
+}
+
+.profile-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    width: 95%;
+    max-width: 450px;
+    box-shadow: 0 8px 30px rgba(126, 34, 206, 0.2);
+    text-align: center;
+    border: 1.5px solid #e9d5ff;
+}
+
+.profile-avatar {
+    background: linear-gradient(135deg, #9333ea, #7e22ce);
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    box-shadow: 0 4px 15px rgba(147, 51, 234, 0.25);
+}
+
+.avatar-icon {
+    color: white;
+}
+
+.profile-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #7e22ce;
+    margin-bottom: 0.3rem;
+}
+
+.profile-email {
+    color: #4b5563;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+}
+
+.profile-score {
+    color: #7e22ce;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.profile-form {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #faf5ff;
+    border-radius: 999px;
+    padding: 0.6rem 1rem;
+    border: 1.5px solid #e9d5ff;
+}
+
+.form-group input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.button-group {
+    margin-top: 1rem;
+}
+
+.btn-edit,
+.btn-save {
+    padding: 0.6rem 1.4rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #9333ea, #7e22ce);
+    color: white;
+}
+
+.btn-save {
+    background: #10b981;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #7e22ce, #581c87);
+    transform: translateY(-2px);
+}
+
+.btn-save:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+.profile-footer {
+    margin-top: 2rem;
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
