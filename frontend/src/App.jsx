@@ -10,7 +10,7 @@ import {
 import Navbar from "./components/Navbar";
 import UserNavbar from "./components/UserNavbar";
 import Footer from "./components/Footer";
-import ConnectionTest from "./components/ConnectionTest"; // 🔍 Temporary for testing
+import BackendStatus from "./components/BackendStatus"; // 🔍 Backend status checker
 
 // 🏠 Pages
 import Home from "./pages/Home";
@@ -49,8 +49,8 @@ const App = () => {
 
   return (
     <Router>
-      {/* 🔍 Connection Test - Remove after testing */}
-      <ConnectionTest />
+      {/* 🔍 Backend Status Checker */}
+      <BackendStatus />
       
       {/* 🧭 Conditional Navbar */}
       {isLoggedIn ? <UserNavbar /> : <Navbar />}

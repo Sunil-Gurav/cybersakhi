@@ -2,12 +2,23 @@ import React, { useState, useEffect } from 'react';
 import api from '../api/apiclient';
 
 const ConnectionTest = () => {
-  const [status, setStatus] = useState('testing');
+  const [status, setStatus] = useState('ready'); // Start with 'ready' instead of 'testing'
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
+  const [backendUrl, setBackendUrl] = useState('');
 
   useEffect(() => {
-    testConnection();
+    // Determine backend URL
+    const url = import.meta.env.PROD ? 'https://cybersakhi-backend.vercel.app' : 'http://localhost:5000';
+    setBackendUrl(url);
+    
+    // Only auto-test if we're in development mode
+    if (!import.meta.env.PROD) {
+      testConnection();
+    } else {
+      // In production, just show the widget without auto-testing
+      setStatus('ready');
+    }
   }, []);
 
   const testDatabase = async () => {
@@ -50,7 +61,7 @@ const ConnectionTest = () => {
       console.log('🔍 Testing connection to backend...');
       console.log('🔍 API Base URL:', api.defaults.baseURL);
       
-      // First try a quick ping
+      // First try a quick ping with very short timeout
       try {
         console.log('🏓 Trying quick ping...');
         const pingResult = await api.get('/ping', {
@@ -61,45 +72,48 @@ const ConnectionTest = () => {
         console.log('⚠️ Ping failed, trying main endpoint...');
       }
       
-      // Test with a simple GET request first
+      // Test with main endpoint
       const result = await api.get('/', {
-        timeout: 30000, // 30 second timeout to match api client
+        timeout: 30000, // 30 second timeout
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       });
       
-      // Also test the environment endpoint
-      const testResult = await api.get('/test', {
-        timeout: 30000 // 30 second timeout
-      });
+      // Try to get environment info
+      let environmentData = null;
+      try {
+        const testResult = await api.get('/test', {
+          timeout: 15000 // 15 second timeout for test endpoint
+        });
+        environmentData = testResult.data.environment;
+      } catch (testError) {
+        console.log('⚠️ Environment test failed:', testError.message);
+      }
       
       setResponse({
         ...result.data,
-        environment: testResult.data.environment
+        environment: environmentData
       });
       setStatus('success');
       console.log('✅ Backend connection successful:', result.data);
-      console.log('✅ Environment test:', testResult.data);
     } catch (err) {
       console.error('❌ Backend connection failed:', err);
       
-      let errorMessage = 'Unknown error';
+      let errorMessage = 'Connection failed';
       
       if (err.code === 'ECONNABORTED') {
-        errorMessage = `Request timeout (${err.config?.timeout || 'unknown'}ms) - Backend might be slow or unavailable`;
-      } else if (err.code === 'NETWORK_ERROR' || err.message === 'Network Error') {
-        errorMessage = 'Network Error - Check CORS, backend availability, or internet connection';
-      } else if (err.code === 'ERR_NETWORK') {
-        errorMessage = 'Network Error - Backend server might be down or unreachable';
+        errorMessage = `Timeout (${err.config?.timeout || 'unknown'}ms) - Backend unavailable or slow`;
+      } else if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+        errorMessage = 'Network Error - Backend server unreachable';
       } else if (err.response) {
         errorMessage = `HTTP ${err.response.status}: ${err.response.statusText}`;
         if (err.response.data?.error) {
           errorMessage += ` - ${err.response.data.error}`;
         }
       } else if (err.request) {
-        errorMessage = 'No response from server - Check network connection and backend status';
+        errorMessage = 'No response - Check backend server status';
       } else {
         errorMessage = err.message;
       }
@@ -120,34 +134,36 @@ const ConnectionTest = () => {
       borderRadius: '5px',
       fontSize: '12px',
       zIndex: 9999,
-      maxWidth: '300px'
+      maxWidth: '320px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
     }}>
-      <h4>🌐 Backend Connection</h4>
+      <h4 style={{ margin: '0 0 8px 0' }}>🌐 Backend Connection</h4>
       
-      <div>
+      <div style={{ marginBottom: '5px' }}>
         <strong>Status:</strong> 
         <span style={{ 
-          color: status === 'success' ? 'green' : status === 'error' ? 'red' : 'orange',
+          color: status === 'success' ? 'green' : status === 'error' ? 'red' : status === 'testing' ? 'orange' : 'blue',
           marginLeft: '5px'
         }}>
           {status === 'testing' && '🔄 Testing...'}
           {status === 'success' && '✅ Connected'}
           {status === 'error' && '❌ Failed'}
+          {status === 'ready' && '⚪ Ready to test'}
         </span>
       </div>
 
-      <div style={{ marginTop: '5px' }}>
-        <strong>API URL:</strong> 
-        <div style={{ fontSize: '10px', wordBreak: 'break-all' }}>
-          {import.meta.env.PROD ? 'https://cybersakhi-backend.vercel.app' : 'http://localhost:5000'}
+      <div style={{ marginBottom: '5px' }}>
+        <strong>Backend:</strong> 
+        <div style={{ fontSize: '10px', wordBreak: 'break-all', color: '#666' }}>
+          {backendUrl}
         </div>
-        <div style={{ fontSize: '10px', color: 'gray', marginTop: '2px' }}>
+        <div style={{ fontSize: '10px', color: 'gray' }}>
           Mode: {import.meta.env.PROD ? 'Production' : 'Development'}
         </div>
       </div>
 
       {response && (
-        <div style={{ marginTop: '5px' }}>
+        <div style={{ marginBottom: '5px' }}>
           <strong>Response:</strong>
           <div style={{ fontSize: '10px', color: 'green' }}>
             {response.message}
@@ -163,21 +179,29 @@ const ConnectionTest = () => {
       )}
 
       {error && (
-        <div style={{ marginTop: '5px' }}>
+        <div style={{ marginBottom: '5px' }}>
           <strong>Error:</strong>
           <div style={{ fontSize: '10px', color: 'red' }}>
             {error}
           </div>
+          {status === 'error' && (
+            <div style={{ fontSize: '9px', color: '#666', marginTop: '2px' }}>
+              💡 Try: {import.meta.env.PROD ? 'Check Vercel deployment' : 'Run "npm start" in backend folder'}
+            </div>
+          )}
         </div>
       )}
 
-      <div style={{ marginTop: '5px', display: 'flex', gap: '5px' }}>
+      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
         <button 
           onClick={testConnection}
           style={{ 
-            padding: '2px 8px', 
+            padding: '3px 8px', 
             fontSize: '10px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            border: '1px solid #ccc',
+            borderRadius: '3px',
+            background: '#f5f5f5'
           }}
         >
           🔄 Test API
@@ -186,12 +210,29 @@ const ConnectionTest = () => {
         <button 
           onClick={testDatabase}
           style={{ 
-            padding: '2px 8px', 
+            padding: '3px 8px', 
             fontSize: '10px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            border: '1px solid #ccc',
+            borderRadius: '3px',
+            background: '#f5f5f5'
           }}
         >
           🗄️ Test DB
+        </button>
+        
+        <button 
+          onClick={() => window.open(backendUrl, '_blank')}
+          style={{ 
+            padding: '3px 8px', 
+            fontSize: '10px',
+            cursor: 'pointer',
+            border: '1px solid #ccc',
+            borderRadius: '3px',
+            background: '#f5f5f5'
+          }}
+        >
+          🔗 Open Backend
         </button>
       </div>
     </div>

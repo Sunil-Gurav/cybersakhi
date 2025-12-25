@@ -183,7 +183,7 @@ const CrimePredictor = ({ initialLocation, currentLocationData, safetyAnalysis }
               console.log("🔄 Retrying with relaxed settings...");
               attemptLocation({
                 enableHighAccuracy: false, // Less accurate but faster
-                timeout: 10000, // Shorter timeout
+                timeout: 30000, // Increased timeout to 30 seconds
                 maximumAge: 60000 // Allow cached location up to 1 minute
               }, 2);
             } else if (attemptNumber === 2 && err.code === 3) { // Still timeout

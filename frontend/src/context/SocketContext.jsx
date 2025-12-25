@@ -24,7 +24,7 @@ export const SocketProvider = ({ children }) => {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      timeout: 10000
+      timeout: 30000 // Increased to 30 seconds
     });
 
     newSocket.on('connect', () => {
