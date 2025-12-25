@@ -4,8 +4,8 @@ const userSafetyMetricsSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
-        index: true
+        required: true
+        // Removed index: true to avoid duplicate with compound index below
     },
     date: {
         type: Date,
