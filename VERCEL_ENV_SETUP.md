@@ -22,12 +22,23 @@ EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_gmail_app_password_here
 ```
 
-### 4. OpenAI API Key
+### 4. AI Services Configuration
+```
+AI_SERVICE_URL=https://cybersakhi.onrender.com
+BACKEND_URL=https://cybersakhi-backend.vercel.app
+```
+
+### 5. OpenAI API Key
 ```
 OPENAI_API_KEY=sk-proj-your_openai_api_key_here_replace_with_actual_key
 ```
 
-### 5. Optional: Twilio (if using SMS features)
+### 5. OpenAI API Key
+```
+OPENAI_API_KEY=sk-proj-your_openai_api_key_here_replace_with_actual_key
+```
+
+### 6. Optional: Twilio (if using SMS features)
 ```
 TWILIO_SID=your_twilio_sid
 TWILIO_AUTH_TOKEN=your_twilio_auth_token

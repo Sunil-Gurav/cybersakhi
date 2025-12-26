@@ -1,5 +1,10 @@
 import axios from "axios";
 
+// AI Service URL - Production deployment
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "https://cybersakhi.onrender.com";
+
+console.log("🤖 AI Service URL:", AI_SERVICE_URL);
+
 
 export const checkIntent = async(req, res) => {
     try {
@@ -7,7 +12,7 @@ export const checkIntent = async(req, res) => {
         if (!text) return res.status(400).json({ intent: "none", confidence: 0 });
 
         // Call Python AI service for active voice detection
-        const aiResponse = await axios.post("http://localhost:8000/ai/active-voice", {
+        const aiResponse = await axios.post(`${AI_SERVICE_URL}/ai/active-voice`, {
             text: text.toLowerCase(),
         });
 
@@ -39,7 +44,7 @@ export const detectEmotion = async(req, res) => {
         if (!text) return res.status(400).json({ emotion: "neutral" });
 
         // Call Python AI service for emotion detection
-        const aiResponse = await axios.post("http://localhost:8000/ai/emotion", {
+        const aiResponse = await axios.post(`${AI_SERVICE_URL}/ai/emotion`, {
             text: text.toLowerCase(),
         });
 
@@ -75,7 +80,7 @@ export const predictCrime = async(req, res) => {
         }
 
         // Call Python AI service for crime prediction
-        const aiResponse = await axios.post("http://localhost:8000/ai/predict-crime", {
+        const aiResponse = await axios.post(`${AI_SERVICE_URL}/ai/predict-crime`, {
             lat,
             lon,
             time_of_day,
@@ -140,7 +145,7 @@ export const predictCrime = async(req, res) => {
                 };
 
                 // Store via crime analysis API
-                await axios.post("http://localhost:5000/api/crime-analysis/store-test", analysisData);
+                await axios.post(`${process.env.BACKEND_URL || "https://cybersakhi-backend.vercel.app"}/crime-analysis/store-test`, analysisData);
                 
                 console.log(`✅ Crime prediction stored for user ${userId}: ${predictionResult.risk}`);
                 predictionResult.database_stored = true;
@@ -182,7 +187,7 @@ export const analyzeLocation = async (req, res) => {
         const { latitude, longitude } = coordinates;
 
         // Call Python AI service for location analysis
-        const aiResponse = await axios.post("http://localhost:8000/ai/analyze-location", {
+        const aiResponse = await axios.post(`${AI_SERVICE_URL}/ai/analyze-location`, {
             latitude: latitude,
             longitude: longitude,
             accuracy: accuracy || 10,
@@ -318,7 +323,7 @@ export const chatWithAI = async (req, res) => {
             return res.status(400).json({ error: "Message is required" });
         }
 
-        const aiResponse = await axios.post("http://localhost:8000/ai/conversation", {
+        const aiResponse = await axios.post(`${AI_SERVICE_URL}/ai/conversation`, {
             user_input: message,
             chat_history: [],
         });
