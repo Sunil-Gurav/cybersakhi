@@ -37,10 +37,25 @@ const initializeDB = async () => {
             console.log("🔄 Initializing MongoDB connection...");
             dbConnection = await connectDB();
             console.log("📊 MongoDB initialized successfully in serverless function");
+            
+            // Wait for connection to be fully ready
+            const mongoose = await import('mongoose');
+            let attempts = 0;
+            while (mongoose.default.connection.readyState !== 1 && attempts < 30) {
+                console.log(`⏳ Waiting for connection to be ready... (${attempts + 1}/30)`);
+                await new Promise(resolve => setTimeout(resolve, 200));
+                attempts++;
+            }
+            
+            if (mongoose.default.connection.readyState !== 1) {
+                throw new Error('Connection timeout - database not ready');
+            }
+            
+            console.log("✅ MongoDB connection is ready");
         } catch (error) {
             console.error("❌ MongoDB initialization failed:", error.message);
             dbConnection = null;
-            // Don't throw here - let individual requests handle the connection
+            throw error; // Re-throw to let caller handle
         }
     }
     return dbConnection;
@@ -49,32 +64,41 @@ const initializeDB = async () => {
 // Middleware to ensure DB connection before each request
 const ensureDBConnection = async (req, res, next) => {
     try {
-        if (!dbConnection) {
-            console.log("🔄 No cached connection, attempting to connect...");
-            await initializeDB();
-        }
+        console.log('🔍 Middleware - Checking DB connection...');
         
-        // Check if connection is still alive
+        // Always try to initialize/check connection
+        await initializeDB();
+        
+        // Check if connection is ready
         const mongoose = await import('mongoose');
-        if (mongoose.default.connection.readyState !== 1) {
-            console.log("⚠️ Connection not ready, reconnecting...");
+        const connectionState = mongoose.default.connection.readyState;
+        
+        console.log('🔍 Middleware - Connection state:', connectionState);
+        
+        if (connectionState !== 1) {
+            console.log('⚠️ Middleware - Connection not ready, attempting reconnect...');
+            
+            // Reset cached connection and try again
             dbConnection = null;
             await initializeDB();
+            
+            // Check again
+            if (mongoose.default.connection.readyState !== 1) {
+                throw new Error('Unable to establish database connection');
+            }
         }
         
-        if (!dbConnection) {
-            return res.status(503).json({
-                message: "Database connection unavailable",
-                error: "Unable to connect to MongoDB"
-            });
-        }
+        // Wait a moment to ensure connection is stable
+        await new Promise(resolve => setTimeout(resolve, 100));
         
+        console.log('✅ Middleware - DB connection verified');
         next();
     } catch (error) {
         console.error("❌ Database connection middleware error:", error);
         return res.status(503).json({
-            message: "Database connection error",
-            error: error.message
+            message: "Database connection unavailable",
+            error: error.message,
+            timestamp: new Date().toISOString()
         });
     }
 };
@@ -171,7 +195,8 @@ app.get("/", (req, res) => {
         message: "🛡️ CyberSakhi Backend API is running!",
         status: "healthy",
         timestamp: new Date().toISOString(),
-        version: "1.0.0"
+        version: "1.0.0",
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
@@ -179,15 +204,29 @@ app.get("/health", (req, res) => {
     res.json({
         status: "OK",
         uptime: process.uptime(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        memory: process.memoryUsage(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Quick ping endpoint for fast connectivity test
+app.get("/ping", (req, res) => {
+    res.json({ 
+        pong: true, 
+        timestamp: new Date().toISOString(),
+        server: "CyberSakhi Backend"
     });
 });
 
 // Database connection test endpoint
 app.get("/db-test", async (req, res) => {
     try {
+        console.log('🔍 DB Test - Starting database connection test...');
+        
+        // Try the main connection first
         const mongoose = await import('mongoose');
-        const connectionState = mongoose.default.connection.readyState;
+        let connectionState = mongoose.default.connection.readyState;
         
         const states = {
             0: 'disconnected',
@@ -196,28 +235,70 @@ app.get("/db-test", async (req, res) => {
             3: 'disconnecting'
         };
         
-        // Try to connect if not connected
+        console.log('🔍 DB Test - Main connection state:', states[connectionState]);
+        
+        // Try to initialize main connection
         if (connectionState !== 1) {
-            console.log('🔄 DB Test - Attempting connection...');
-            await initializeDB();
+            try {
+                await initializeDB();
+                connectionState = mongoose.default.connection.readyState;
+            } catch (initError) {
+                console.log('⚠️ DB Test - Main connection failed, trying alternative method');
+            }
         }
         
-        // Test a simple query
-        const User = mongoose.default.model('User') || (await import('../models/User.js')).default;
-        const userCount = await User.countDocuments();
-        
-        res.json({
-            status: "Database connection successful",
-            connectionState: states[mongoose.default.connection.readyState],
-            userCount,
+        const result = {
             timestamp: new Date().toISOString(),
             mongoUri: process.env.MONGO_URI ? 'Set' : 'Missing',
-            host: mongoose.default.connection.host
-        });
+            mainConnection: {
+                state: states[connectionState],
+                connected: connectionState === 1
+            }
+        };
+        
+        // If main connection works, try to get basic info
+        if (connectionState === 1) {
+            result.mainConnection.host = mongoose.default.connection.host || 'Unknown';
+            result.mainConnection.dbName = mongoose.default.connection.name || 'Unknown';
+            
+            // Try a simple query with timeout
+            try {
+                const { default: User } = await import('../models/User.js');
+                
+                // Set a timeout for the query
+                const queryPromise = User.countDocuments();
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Query timeout')), 5000)
+                );
+                
+                const userCount = await Promise.race([queryPromise, timeoutPromise]);
+                result.mainConnection.userCount = userCount;
+                result.status = "Database connection successful";
+            } catch (queryError) {
+                result.mainConnection.queryError = queryError.message;
+                result.status = "Connection established but query failed";
+            }
+        } else {
+            // Try alternative connection method
+            try {
+                const testConnection = (await import('../config/db-test.js')).default;
+                const testResult = await testConnection();
+                result.alternativeConnection = testResult;
+                result.status = "Alternative connection successful";
+            } catch (altError) {
+                result.alternativeConnectionError = altError.message;
+                result.status = "All connection methods failed";
+            }
+        }
+        
+        // Return success if any connection method worked
+        const statusCode = (result.status.includes('successful') || result.status.includes('established')) ? 200 : 500;
+        res.status(statusCode).json(result);
+        
     } catch (error) {
         console.error('❌ DB Test Error:', error);
         res.status(500).json({
-            status: "Database connection failed",
+            status: "Database connection test failed",
             error: error.message,
             timestamp: new Date().toISOString(),
             mongoUri: process.env.MONGO_URI ? 'Set' : 'Missing'

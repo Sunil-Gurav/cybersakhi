@@ -19,7 +19,30 @@ import userActivityRoutes from "./routes/userActivityRoutes.js";
 import familyRoutes from "./routes/familyRoutes.js";
 
 dotenv.config();
-connectDB();
+
+// Initialize database connection with error handling
+const initializeDatabase = async () => {
+    try {
+        await connectDB();
+        console.log("📊 Database connected successfully");
+    } catch (error) {
+        console.error("❌ Database connection failed:", error.message);
+        
+        // Try simple connection as fallback
+        try {
+            console.log("🔄 Trying simple connection method...");
+            const simpleConnect = (await import('./config/db-simple.js')).default;
+            await simpleConnect();
+            console.log("📊 Database connected using simple method");
+        } catch (simpleError) {
+            console.error("❌ Simple connection also failed:", simpleError.message);
+            console.error("⚠️ Server will continue without database connection");
+        }
+    }
+};
+
+// Initialize database
+initializeDatabase();
 
 const app = express();
 app.use(express.json());

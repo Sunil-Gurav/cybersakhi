@@ -46,17 +46,24 @@ api.interceptors.request.use((config) => {
 // Add response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => {
-    console.log("✅ API Response:", response.status, response.config.url);
+    // Only log successful responses, not errors
+    if (response.status >= 200 && response.status < 300) {
+      console.log("✅ API Response:", response.status, response.config.url);
+    }
     return response;
   },
   (error) => {
-    console.error("❌ API Error:", error.response?.status, error.config?.url);
-    console.error("❌ Error details:", error.response?.data);
+    // Only log errors if they're not network/connection errors
+    if (error.response) {
+      console.error("❌ API Error:", error.response.status, error.config?.url);
+      console.error("❌ Error details:", error.response.data);
+    } else if (error.code !== 'ERR_NETWORK' && error.code !== 'ECONNABORTED') {
+      console.error("❌ API Error:", error.message);
+    }
+    // Don't log network errors to reduce console noise
     
     if (error.response?.status === 401) {
       console.log("🚨 401 Unauthorized - Token might be expired");
-      console.log("🔍 Current token:", localStorage.getItem("token")?.substring(0, 20) + "...");
-      
       // Optionally redirect to login or show a message
       // window.location.href = '/login';
     }
